@@ -1,0 +1,10 @@
+[project]
+name = "final-project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "jsonpickle>=4.0.1",
+    "pyinstaller>=6.11.1",
+]

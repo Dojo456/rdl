@@ -1,0 +1,5 @@
+lang test = [a]
+
+lang test123 = [a]
+
+lang error$ = [a]
