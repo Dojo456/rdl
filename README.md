@@ -1,4 +1,5 @@
-# RDL (Regular Definition Language) Parser
+# The RDL (Regular Definition Language) Language
+<small>_regular definition language language language language_</small>
 
 A Python-based parser and interpreter for Regular Definition Language (RDL), a language designed for defining Deterministic Finite Automata (DFAs) and Non-deterministic Finite Automata (NFAs). This project implements a lexical analyzer (scanner) and parser to process RDL files and convert automata definitions into a structured JSON representation.
 
