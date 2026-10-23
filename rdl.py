@@ -1,6 +1,9 @@
-from scanner import tokenize
+import os
 from parser import parse
+
 import jsonpickle
+
+from scanner import tokenize
 
 
 def main():
@@ -9,7 +12,12 @@ def main():
     args = sys.argv[1:]
 
     if len(args) == 0:
-        raise ValueError("Provide an input file")
+        default = os.getenv("file")
+
+        if not default:
+            raise ValueError("Provide an input file")
+
+        input_file = default
     else:
         input_file = args[0]
 
@@ -19,7 +27,7 @@ def main():
     tokens = tokenize(data)
     parsed = parse(tokens)
 
-    print(jsonpickle.encode(parsed, indent=2))
+    # print(jsonpickle.encode(parsed, indent=2))
 
 
 if __name__ == "__main__":

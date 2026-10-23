@@ -1,5 +1,5 @@
-from enum import Enum
 import re
+from enum import Enum
 from typing import NamedTuple, TypedDict
 
 
@@ -33,6 +33,9 @@ class TokenType(Enum):
     def __repr__(self):
         return self.value
 
+    def __str__(self) -> str:
+        return f"{self.value} token"
+
 
 class Token(NamedTuple):
     type: TokenType
@@ -40,6 +43,9 @@ class Token(NamedTuple):
 
     def __repr__(self):
         return f"Token(type={self.type}, value={self.value})"
+
+    def __str__(self) -> str:
+        return f"{str(self.type)}: '{self.value}'"
 
 
 keyword_tokens = frozenset(["dfa", "start", "end", "lang", "sublang", "state"])
@@ -56,6 +62,7 @@ def tokenize(data: str) -> list[Token]:
 
     language = [whitespace, identifier, number, symbol, semicolon]
 
+    # simple DFA for tokenizing
     transition_table: list[list[int | None]] = [
         # Input character
         # whitespace, letter, number, symbol, semicolon
@@ -64,7 +71,7 @@ def tokenize(data: str) -> list[Token]:
         [None, None, None, None, None],  # 2 yield identifier or keyword
         [4, -1, 3, -1, 4],  # 3 first letter of number
         [None, None, None, None, None],  # 4 yield number
-        [7, 7, 7, 7, 8],  # 5 first letter of whitespace
+        [5, 7, 7, 7, 8],  # 5 first letter of whitespace
         [8, 8, 8, 8, 8],  # 6 first letter of symbol
         [None, None, None, None, None],  # 7 yield whitespace
         [None, None, None, None, None],  # 8 yield symbol
@@ -92,6 +99,7 @@ def tokenize(data: str) -> list[Token]:
         for j, language_regex in enumerate(language):
             if language_regex.match(char):
                 next_state = transition_table[state][j]
+                break
 
         if next_state == -1:
             raise ValueError(f"Unexpected character: {char}")

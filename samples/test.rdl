@@ -6,7 +6,7 @@ dfa test([a, b]) {
 
 dfa MOD_3(global) {
     start > 1;
-    1 >[a] 2 >[a] 3 >[a] 1;
+
     1 <[b, c];
     2 <[b, c];
     3 <[b, c];

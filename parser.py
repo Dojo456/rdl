@@ -1,6 +1,6 @@
 from collections import deque
-from scanner import Token, TokenType
 
+from scanner import Token, TokenType
 
 # Grammar for the parser
 # If non-terminal does not have a production for a token, it is considered an error
@@ -114,16 +114,31 @@ def matches(token: Token, rule: Token | TokenType) -> bool:
         return token.type == rule
 
 
+class ParseTokenMismatchError(ValueError):
+    def __init__(
+        self, expected: Token | TokenType, found: Token | TokenType, *args: object
+    ) -> None:
+        self.expected = expected
+        self.found = found
+
+        super().__init__(*args)
+
+    def __str__(self) -> str:
+        return f"Expected {str(self.expected)}, found {str(self.found)}"
+
+
 def parse(tokens: list[Token]):
     stack: deque[tuple[Token | str | TokenType | None, list[str | Token]]] = deque(
         [("start", [])]
     )
 
+    initial_tokens_length = len(tokens)
     token_stack = deque(tokens)
 
     parse_tree = {}
 
     def node_at(path: list[str | Token]) -> dict:
+        """Navigates to the node from the parse_tree that is at the given path. Returns the object reference, meaning is editable and has all nested children."""
         node = parse_tree
         for key in path:
             next = node[key]
@@ -133,10 +148,13 @@ def parse(tokens: list[Token]):
             node = next
         return node
 
+    top_entry = None
+
     try:
         while token_stack:
             token = token_stack[0]
 
+            # Whitespace tokens are ignored, simply pop left and remove it
             if token.type == TokenType.WHITESPACE:
                 token_stack.popleft()
                 continue
@@ -165,7 +183,7 @@ def parse(tokens: list[Token]):
 
                         break
 
-                new_node = {}
+                new_node = {"token_index": initial_tokens_length - len(token_stack)}
                 current_node[top] = new_node
 
                 if not found_match:
@@ -179,7 +197,7 @@ def parse(tokens: list[Token]):
                     # If terminal, add it to the parse tree
                     current_node[token] = None
                 else:
-                    raise ValueError(f"Expected {top} but got {token.type}")
+                    raise ParseTokenMismatchError(top, token.type)
             # If the top of the stack is a token, check if it matches the current token and push token
             elif isinstance(top, Token):
                 if top == token:
@@ -188,12 +206,53 @@ def parse(tokens: list[Token]):
                     # If terminal, add it to the parse tree
                     current_node[token] = None
                 else:
-                    raise ValueError(f"Expected {top} but got {token}")
+                    raise ParseTokenMismatchError(top, token)
             # Epsilon production
             elif top is None:
                 continue
 
     except Exception as e:
+        print(e.__class__, "\n")
+
+        if top_entry:  # Attempt to recreate source code from symbol trace and print it
+            path = top_entry[1]
+
+            node = node_at(path)
+
+            # Current node's token index
+            n_ti = node.get("token_index")
+
+            # Traverse up (parent) node's token index
+            tu_ti = n_ti
+
+            if n_ti:
+                for i in range(len(path)):
+                    traverse_up = node_at(path[: -1 * i])
+
+                    tu_ti_temp = traverse_up.get("token_index")
+
+                    if tu_ti_temp and tu_ti_temp != n_ti:
+                        tu_ti = tu_ti_temp
+
+                # Print all children
+                s = deque([node])
+
+                while len(s) > 0:
+                    n = s.popleft()
+
+                    if not isinstance(n, dict):
+                        continue
+
+                    n_ti_temp = n.get("token_index")
+
+                    if n_ti_temp and n_ti_temp > n_ti:
+                        n_ti = n_ti_temp
+
+                    for c in n.values():
+                        s.appendleft(c)
+
+                print("".join([t.value for t in tokens[tu_ti : n_ti + 1]]))
+
         print(e)
 
     return parse_tree
