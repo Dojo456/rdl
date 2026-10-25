@@ -34,7 +34,7 @@ class TokenType(Enum):
         return self.value
 
     def __str__(self) -> str:
-        return f"{self.value} token"
+        return f"{self.value}-type token"
 
 
 class Token(NamedTuple):
@@ -71,19 +71,23 @@ def tokenize(data: str) -> list[Token]:
         [None, None, None, None, None],  # 2 yield identifier or keyword
         [4, -1, 3, -1, 4],  # 3 first letter of number
         [None, None, None, None, None],  # 4 yield number
-        [5, 7, 7, 7, 8],  # 5 first letter of whitespace
-        [8, 8, 8, 8, 8],  # 6 first letter of symbol
+        [5, 7, 7, 7, 6],  # 5 first letter of whitespace
+        [None, None, None, None, None],  # 6 yield symbol
         [None, None, None, None, None],  # 7 yield whitespace
-        [None, None, None, None, None],  # 8 yield symbol
-        [10, 10, 10, 10, 10],  # 9 first letter of semicolon
-        [None, None, None, None, None],  # 10 yield semicolon
+        [None, None, None, None, None],  # 8 deprecated
+        [None, None, None, None, None],  # 9 first letter of semicolon
+        [None, None, None, None, None],  # 10 deprecated
     ]
+
+    # TODO: figure out why the last curly brace and semi colon are not tokenized. something to do with how yielding decrements i
 
     end_state_types = {
         2: lambda x: TokenType.KEYWORD if x in keyword_tokens else TokenType.IDENTIFIER,
         4: lambda _: TokenType.NUMBER,
         7: lambda _: TokenType.WHITESPACE,
+        6: lambda _: TokenType.SYMBOL,
         8: lambda _: TokenType.SYMBOL,
+        9: lambda _: TokenType.SEMICOLON,
         10: lambda _: TokenType.SEMICOLON,
     }
 
